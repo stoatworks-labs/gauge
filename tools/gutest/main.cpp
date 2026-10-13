@@ -32,6 +32,7 @@
 #include "Camera.h"
 #include "Controls.h"
 #include "Gauge.h"
+#include "Lettering.h"
 #include "Shaders.h"
 #include "Strip.h"
 

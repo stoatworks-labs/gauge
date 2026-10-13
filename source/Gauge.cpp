@@ -469,6 +469,14 @@ void GaugePlugin::contentFor( int64_t index, int& kind, int& valueOut ) const
 		kind = C_LIVE;
 		return;
 	}
+	//In Cell the frame in the gate is still being exposed, and the ones below
+	//it have not been yet: they show the clip as it is now, at full precision.
+	//Only a frame that has been pulled down past the gate is a held picture.
+	if( option( K_MODE, controls::kModeCount ) == controls::kModeCell && index >= state.gate )
+	{
+		kind = C_LIVE;
+		return;
+	}
 	if( ring.Holds( index ) )
 	{
 		kind     = C_HELD;
