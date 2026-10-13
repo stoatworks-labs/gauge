@@ -76,7 +76,68 @@ int runCheck( const std::string& check, int width, int height, int perturb )
 	return 1;
 }
 
-int runBench( const std::vector< std::string >&, bool, int, double )
+//---------------------------------------------------------------------------
+// --bench: ProcessOpenGL at 720p through 4K, best of three runs, glFinish
+// both sides, on a GPU shared with whatever else is running. Two cases: the
+// defaults (a Cell, the clip live in the gate), and the costliest a strip
+// gets -- 24 frames a second with the shutter open all the way, sixteen taps
+// of motion blur over every pixel.
+//---------------------------------------------------------------------------
+double benchAt( const std::vector< std::string >& settings, const Settings& extra, bool effect, int width, int height,
+                int frames, double fps )
 {
+	Session session( effect );
+	session.floatOutput = false;
+	session.fps         = fps;
+	for( const std::string& s : settings )
+	{
+		std::string error;
+		applySetting( *session.plugin, s, error );
+	}
+	applyAll( *session.plugin, extra );
+	if( !session.begin( width, height ) )
+		return -1.0;
+	const Image card = buildCard( width, height, 0 );
+	session.upload( card );
+	const int warmup = 20;
+	for( int frame = 0; frame < warmup; ++frame )
+		session.renderAt( frame );
+	glFinish();
+	double best = 1e9;
+	for( int run = 0; run < 3; ++run )
+	{
+		const auto start = std::chrono::steady_clock::now();
+		for( int frame = 0; frame < frames; ++frame )
+			session.renderAt( warmup + run * frames + frame );
+		glFinish();
+		const double seconds = std::chrono::duration< double >( std::chrono::steady_clock::now() - start ).count();
+		best                 = std::min( best, seconds * 1000.0 / frames );
+	}
+	session.end();
+	return best;
+}
+
+int runBench( const std::vector< std::string >& settings, bool effect, int frames, double fps )
+{
+	struct Size
+	{
+		const char* name;
+		int width, height;
+	};
+	const Size sizes[] = { { "1280x720 ", 1280, 720 }, { "1920x1080", 1920, 1080 }, { "2560x1440", 2560, 1440 }, { "3840x2160", 3840, 2160 } };
+	char travel[ 32 ];
+	std::snprintf( travel, sizeof( travel ), "%.9g", controls::TravelParam( 24.0 ) );
+	const Settings strip = { { "Mode", "Strip" }, { "Travel", travel }, { "Shutter", "1" } };
+
+	std::printf( "%d frames each, best of three runs after a 20-frame warm-up, glFinish both sides.\n\n", frames );
+	std::printf( "resolution   defaults ms   %%60fps   strip, 24 fps, 360 deg ms   %%60fps\n" );
+	for( const Size& size : sizes )
+	{
+		const double a = benchAt( settings, {}, effect, size.width, size.height, frames, fps );
+		const double b = benchAt( settings, strip, effect, size.width, size.height, frames, fps );
+		std::printf( "%s     %7.3f     %5.1f%%          %7.3f            %5.1f%%\n", size.name, a, a / 16.667 * 100.0, b,
+		             b / 16.667 * 100.0 );
+	}
+	std::printf( "\nWhatever --set says is what was measured.\n" );
 	return 0;
 }

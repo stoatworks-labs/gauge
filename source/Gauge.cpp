@@ -122,7 +122,9 @@ GaugePlugin::GaugePlugin( bool effect ) :
 		          K_ROLL_LEADER, K_START_ON, K_POP_FRAME, K_FLASH, K_AUTO_FLASH,
 		          K_HOLES, K_SURROUND, K_MIX };
 	else
-		order = { K_FORMAT, K_STOCK, K_SQUEEZE, K_EDGE_PRINT, K_SOUNDTRACKS, K_TRACK_LEVEL, K_AUDIO,
+		//No Audio and no Track Level: a leader carries no programme sound, only
+		//its pop on the 2, so the source's track is silent but for that.
+		order = { K_FORMAT, K_STOCK, K_SQUEEZE, K_EDGE_PRINT, K_SOUNDTRACKS,
 		          K_MODE, K_FRAMING, K_RACK, K_DRIFT, K_SIZE, K_ANGLE, K_POSITION, K_TRAVEL, K_SHUTTER,
 		          K_RATE,
 		          K_LOOP, K_ROLL_LEADER, K_START_ON, K_POP_FRAME, K_FLASH, K_AUTO_FLASH, K_AFTER,
