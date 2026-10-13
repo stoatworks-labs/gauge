@@ -654,11 +654,17 @@ float luma( vec3 c )
 	return dot( c, vec3( 0.2126, 0.7152, 0.0722 ) );
 }
 
-//Frame d's picture over `col`, where this pixel is inside it. yf is the
-//pixel's distance from the top of frame d (it may run past either end, for
-//the neighbour across a frame line). Adds to `clearPart` where the frame is
-//Clear.
-void pictureInto( inout vec3 col, inout float clearPart, float x, float yf, int d )
+//Frame d's picture where this pixel is inside it, ADDED to `sum` with its
+//coverage added to `cover`. yf is the pixel's distance from the top of frame d
+//(it may run past either end, for the neighbour across a frame line). A frame
+//that is Clear adds its coverage to `clearPart` instead.
+//
+//Added, not mixed in turn: two pictures either side of a frame line never
+//overlap, so a pixel across a hairline (Super 8's is 0.014 mm) is base where
+//neither is, plus each picture by its own coverage. Mixing the second over
+//the first would scale the first's share down by the second's coverage --
+//`gutest --aperture` found Super 8's picture 0.12 px short that way.
+void pictureInto( inout vec3 sum, inout float cover, inout float clearPart, float x, float yf, int d )
 {
 	float cov = span( x, Image.x, Image.y ) * span( yf, Image.z, Image.w );
 	if( cov <= 0.0 )
@@ -699,6 +705,7 @@ void pictureInto( inout vec3 col, inout float clearPart, float x, float yf, int 
 	else if( c.x == 5 )
 	{
 		clearPart += cov;
+		cover += cov;
 		return;
 	}
 	else
@@ -706,7 +713,8 @@ void pictureInto( inout vec3 col, inout float clearPart, float x, float yf, int 
 
 	if( Mono != 0 )
 		pic = vec3( luma( pic ) );
-	col = mix( col, pic, cov );
+	sum += pic * cov;
+	cover += cov;
 }
 
 float holeCoverage( vec2 f )
@@ -749,20 +757,26 @@ vec4 shade( vec2 f, vec4 surround )
 	int d    = int( fd );
 	float yf = f.y - fd * Pitch;
 
-	vec3 col        = BaseColour;
+	vec3 sum        = vec3( 0.0 );
+	float cover     = 0.0;
 	float clearPart = 0.0;
-	pictureInto( col, clearPart, f.x, yf, d );
+	pictureInto( sum, cover, clearPart, f.x, yf, d );
 	if( yf < MmPerPixel )
-		pictureInto( col, clearPart, f.x, yf + Pitch, d - 1 );
+		pictureInto( sum, cover, clearPart, f.x, yf + Pitch, d - 1 );
 	if( yf > Pitch - MmPerPixel )
-		pictureInto( col, clearPart, f.x, yf - Pitch, d + 1 );
+		pictureInto( sum, cover, clearPart, f.x, yf - Pitch, d + 1 );
+	//A Clear frame's coverage counts as picture (no base under it) but adds no
+	//colour: it is cut out of the film below.
+	vec3 col = BaseColour * ( 1.0 - min( cover, 1.0 ) ) + sum;
 
 	if( Soundtracks != 0 )
 		col = soundtracks( col, f, yf, d );
 	if( EdgePrint != 0 )
 		col = mix( col, InkColour, edgeInk( f ) );
 
-	vec4 film = vec4( col, 1.0 ) * ( 1.0 - clamp( clearPart, 0.0, 1.0 ) );
+	//Premultiplied: col already leaves the Clear part out (no base under it,
+	//no colour from it), so only the alpha loses it.
+	vec4 film = vec4( col, 1.0 - clamp( clearPart, 0.0, 1.0 ) );
 	film      = mix( film, HoleColour, holeCoverage( f ) );
 	return mix( surround, film, filmCov );
 }

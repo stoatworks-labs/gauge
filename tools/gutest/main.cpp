@@ -197,9 +197,30 @@ Image buildFlat( int width, int height, float level, float alpha = 1.0f )
 	return image;
 }
 
-/// A white disc of radius `r` (of the height) at the centre, on black, with an
-/// exactly area-weighted edge (16 x 16 supersampled), so its moments are its
-/// shape's to within a pixel's rounding.
+/// The exact area of a disc ( centre cx, cy, radius R ) inside the box
+/// [ x0, x1 ] x [ y0, y1 ]: the chord's span inside the box, integrated across
+/// it by composite Simpson's rule over 64 panels -- the chord is smooth inside a
+/// pixel, so the error is far below float.
+double discArea( double cx, double cy, double R, double x0, double x1, double y0, double y1 )
+{
+	auto chord = [ & ]( double x ) {
+		const double d = R * R - ( x - cx ) * ( x - cx );
+		if( d <= 0.0 )
+			return 0.0;
+		const double h = std::sqrt( d );
+		return std::max( 0.0, std::min( y1, cy + h ) - std::max( y0, cy - h ) );
+	};
+	const int n    = 64;
+	const double w = ( x1 - x0 ) / n;
+	double sum     = chord( x0 ) + chord( x1 );
+	for( int i = 1; i < n; ++i )
+		sum += ( i % 2 ? 4.0 : 2.0 ) * chord( x0 + i * w );
+	return sum * w / 3.0;
+}
+
+/// A white disc of radius `r` (of the height) at the centre, on black. Each
+/// pixel holds the exact fraction of it the disc covers, so the disc's
+/// moments are a circle's to float, not to a supersampling grid's.
 Image buildDisc( int width, int height, double r )
 {
 	Image image( static_cast< size_t >( width ) * height * 4, 0.0f );
@@ -207,16 +228,20 @@ Image buildDisc( int width, int height, double r )
 	for( int y = 0; y < height; ++y )
 		for( int x = 0; x < width; ++x )
 		{
-			int inside = 0;
-			for( int j = 0; j < 16; ++j )
-				for( int i = 0; i < 16; ++i )
-				{
-					const double px = x + ( i + 0.5 ) / 16.0 - cx, py = y + ( j + 0.5 ) / 16.0 - cy;
-					if( px * px + py * py < R * R )
-						++inside;
-				}
+			//Wholly inside or wholly outside needs no integral.
+			const double nx = std::clamp( cx, double( x ), double( x + 1 ) ) - cx;
+			const double ny = std::clamp( cy, double( y ), double( y + 1 ) ) - cy;
+			const double fx = std::max( std::fabs( x - cx ), std::fabs( x + 1 - cx ) );
+			const double fy = std::max( std::fabs( y - cy ), std::fabs( y + 1 - cy ) );
+			double cover;
+			if( nx * nx + ny * ny >= R * R )
+				cover = 0.0;
+			else if( fx * fx + fy * fy <= R * R )
+				cover = 1.0;
+			else
+				cover = discArea( cx, cy, R, x, x + 1, y, y + 1 );
 			float* p = image.data() + ( static_cast< size_t >( y ) * width + x ) * 4;
-			p[ 0 ] = p[ 1 ] = p[ 2 ] = static_cast< float >( inside ) / 256.0f;
+			p[ 0 ] = p[ 1 ] = p[ 2 ] = static_cast< float >( cover );
 			p[ 3 ] = 1.0f;
 		}
 	return image;
