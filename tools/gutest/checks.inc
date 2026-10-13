@@ -4,11 +4,13 @@
 //---------------------------------------------------------------------------
 #include "geometry.inc"
 #include "time.inc"
+#include "signal.inc"
 
 const std::vector< std::string >& checkNames()
 {
 	static const std::vector< std::string > names = { "--perfs", "--aperture", "--squeeze", "--held",
-		                                                   "--leader", "--flash", "--resize", "--negative" };
+		                                                   "--leader", "--flash", "--resize", "--track",
+		                                                   "--alpha", "--negative" };
 	return names;
 }
 
@@ -34,6 +36,8 @@ int runNegative( int width, int height )
 		{ "leader with 25 frames to a count                   ", runLeader( width, height, kPerturbLeaderCount, true ) },
 		{ "flash two frames long                              ", runFlash( width, height, kPerturbFlashLong, true ) },
 		{ "resize that forgets the held frames                ", runResize( width, height, kPerturbResizeForget, true ) },
+		{ "track drawn at 25 fps whatever the film's rate     ", runTrack( width, height, kPerturbTrackSpeed, true ) },
+		{ "alpha with clear holes drawn opaque                ", runAlpha( width, height, kPerturbHolesOpaque, true ) },
 	};
 	int failures = 0;
 	for( const Control& c : controls )
@@ -63,6 +67,10 @@ int runCheck( const std::string& check, int width, int height, int perturb )
 		return runFlash( width, height, perturb );
 	if( check == "--resize" )
 		return runResize( width, height, perturb );
+	if( check == "--track" )
+		return runTrack( width, height, perturb );
+	if( check == "--alpha" )
+		return runAlpha( width, height, perturb );
 	if( check == "--negative" )
 		return runNegative( width, height );
 	return 1;

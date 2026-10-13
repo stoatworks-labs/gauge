@@ -542,9 +542,11 @@ struct Session
 		glBindTexture( GL_TEXTURE_2D, 0 );
 	}
 
+	/// Render one frame. The source has no input: an empty image uploads nothing.
 	bool render( int frame, const Image& pixels )
 	{
-		upload( pixels );
+		if( !pixels.empty() )
+			upload( pixels );
 		return renderAt( frame );
 	}
 
