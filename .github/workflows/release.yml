@@ -1,10 +1,10 @@
 name: release
 
-# Build the Rebate FFGL plugin for the two platforms Resolume runs on:
-#   - macOS   -> universal (arm64 + x86_64) Rebate.bundle
-#   - Windows -> x64 Rebate.dll (GLEW static-linked via vcpkg)
-# Each ships as a zip; drop the bundle/dll into Resolume's "Extra Effects"
-# folder. Trigger manually (Actions > release > Run workflow) or by pushing a
+# Build the two Gauge FFGL plugins for the two platforms Resolume runs on:
+#   - macOS   -> universal (arm64 + x86_64) Gauge.bundle and Gauge Leader.bundle
+#   - Windows -> x64 Gauge.dll and Gauge Leader.dll (GLEW static-linked via vcpkg)
+# Each platform ships as one zip holding both; drop them into Resolume's
+# "Extra Effects" folder. Trigger manually (Actions > release > Run workflow) or by pushing a
 # v* tag.
 #
 # Dispatching this manually is the cheap way to test an FFGL build without
@@ -33,20 +33,20 @@ jobs:
           # so x86_64 is cross-compiled from Apple Silicon rather than built
           # natively. CMAKE_OSX_ARCHITECTURES in CMakeLists.txt does that on
           # its own; there is nothing to set here.
-          - { name: macos-universal, os: macos-14,       artifact: Rebate.bundle }
-          - { name: windows-x86_64,  os: windows-latest, artifact: Rebate.dll }
+          - { name: macos-universal, os: macos-14 }
+          - { name: windows-x86_64,  os: windows-latest }
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
 
       # --- macOS: no extra deps, universal build straight from CMake ---
-      # Tools off: rbtest links against zlib and CGL and is a developer
+      # Tools off: gutest links against zlib and CGL and is a developer
       # harness, not something that ships. The checks it runs happen locally
       # via tools/verify.sh.
       - name: Configure (macOS)
         if: runner.os == 'macOS'
-        run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DREBATE_BUILD_TOOLS=OFF
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DGAUGE_BUILD_TOOLS=OFF
 
       # --- Windows: GLEW comes from vcpkg, static-linked (static-md keeps the
       #     CRT dynamic so the plugin matches the host) so the .dll has no
@@ -56,7 +56,7 @@ jobs:
         run: >
           cmake -B build -A x64
           -DCMAKE_BUILD_TYPE=Release
-          -DREBATE_BUILD_TOOLS=OFF
+          -DGAUGE_BUILD_TOOLS=OFF
           -DVCPKG_TARGET_TRIPLET=x64-windows-static-md
           -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
 
@@ -78,33 +78,31 @@ jobs:
         run: |
           mkdir -p out
           if [ "${{ runner.os }}" = "macOS" ]; then
-            cp -R "build/Rebate.bundle" "out/Rebate.bundle"
-            # Sanity-check the bundle really is universal and exports plugMain.
-            # An arm64-only build logs as a success, and a bundle that exports
-            # nothing loads cleanly and reports that it contains no plugins --
-            # neither failure is visible anywhere else in this workflow.
-            #
-            # Actions runs `shell: bash` as `bash -eo pipefail`, so `cmd | grep -q X`
-            # FAILS when grep FINDS its match: grep exits at once, the writer takes
-            # SIGPIPE, and pipefail reports the pipeline as failed. Captured and
-            # matched with `case` instead.
-            __archs=$( lipo -archs "out/Rebate.bundle/Contents/MacOS/Rebate" )
-            echo "architectures: $__archs"
-            case "$__archs" in
-              *x86_64*) ;;
-              *) echo "expected x86_64, got: $__archs"; exit 1 ;;
-            esac
-            case "$__archs" in
-              *arm64*) ;;
-              *) echo "expected arm64, got: $__archs"; exit 1 ;;
-            esac
-            __symbols=$( nm -gU "out/Rebate.bundle/Contents/MacOS/Rebate" )
-            case "$__symbols" in
-              *_plugMain*) ;;
-              *) echo "expected _plugMain, got: $__symbols"; exit 1 ;;
-            esac
+            for name in "Gauge" "Gauge Leader"; do
+              cp -R "build/$name.bundle" "out/$name.bundle"
+              # Sanity-check each bundle really is universal and exports
+              # plugMain. An arm64-only build logs as a success, and a bundle
+              # that exports nothing loads cleanly and reports no plugins --
+              # neither failure is visible anywhere else in this workflow.
+              #
+              # Actions runs `shell: bash` as `bash -eo pipefail`, so
+              # `cmd | grep -q X` FAILS when grep finds its match (SIGPIPE).
+              # Captured and matched with `case` instead.
+              bin="out/$name.bundle/Contents/MacOS/$name"
+              __archs=$( lipo -archs "$bin" )
+              case "$__archs" in
+                *x86_64*arm64*|*arm64*x86_64*) ;;
+                *) echo "expected x86_64 and arm64, got: $__archs"; exit 1 ;;
+              esac
+              __symbols=$( nm -gU "$bin" )
+              case "$__symbols" in
+                *_plugMain*) ;;
+                *) echo "expected _plugMain in $name"; exit 1 ;;
+              esac
+            done
           else
-            cp "build/Release/Rebate.dll" "out/Rebate.dll"
+            cp "build/Release/Gauge.dll" "out/Gauge.dll"
+            cp "build/Release/Gauge Leader.dll" "out/Gauge Leader.dll"
           fi
           ls -R out
 
@@ -113,9 +111,9 @@ jobs:
         run: |
           cd out
           if command -v 7z >/dev/null 2>&1; then
-            7z a "../rebate-${{ matrix.name }}.zip" ./*
+            7z a "../gauge-${{ matrix.name }}.zip" ./*
           else
-            zip -r "../rebate-${{ matrix.name }}.zip" ./*
+            zip -r "../gauge-${{ matrix.name }}.zip" ./*
           fi
 
       - name: Disk image (macOS)
@@ -128,16 +126,17 @@ jobs:
         # half of users.
         run: |
           source scripts/release-lib.sh
-          rl_init "Rebate" rebate "${{ steps.ver.outputs.version }}" \
-            com.stoatworks.rebate "$GITHUB_WORKSPACE"
+          rl_init "Gauge" gauge "${{ steps.ver.outputs.version }}" \
+            com.stoatworks.gauge "$GITHUB_WORKSPACE"
           cp README.md out/ 2>/dev/null || true
-          rl_adhoc_sign "out/Rebate.bundle"
+          rl_adhoc_sign "out/Gauge.bundle"
+          rl_adhoc_sign "out/Gauge Leader.bundle"
           rl_dmg "${{ matrix.name }}" out
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
-          name: rebate-${{ matrix.name }}
+          name: gauge-${{ matrix.name }}
           path: |
             *.zip
             *.dmg
@@ -152,9 +151,9 @@ jobs:
     # folder but stays editable, because Resolume reads plugins from a path the
     # user chooses per edition.
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v7
         with:
           path: artifacts
 
@@ -167,8 +166,8 @@ jobs:
           source scripts/release-lib.sh
           version="${GITHUB_REF_NAME#v}"
           case "$version" in [0-9]*) ;; *) version="0.0.0" ;; esac
-          rl_init "Rebate" rebate "$version" com.stoatworks.rebate "$PWD/installers"
-          zip="$(find artifacts -name "rebate-windows-x86_64.zip" | head -1)"
+          rl_init "Gauge" gauge "$version" com.stoatworks.gauge "$PWD/installers"
+          zip="$(find artifacts -name "gauge-windows-x86_64.zip" | head -1)"
           if [ -z "$zip" ]; then echo "no Windows artefact, nothing to do"; exit 0; fi
           stage="$RUNNER_TEMP/stage-win"
           rm -rf "$stage"; mkdir -p "$stage"
@@ -179,9 +178,9 @@ jobs:
           rl_nsis windows-x86_64 "$stage" --plain
           ls -l installers
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
-          name: rebate-windows-installer
+          name: gauge-windows-installer
           path: installers/*
           if-no-files-found: warn
 
@@ -191,7 +190,7 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v7
         with:
           path: artifacts
       - uses: softprops/action-gh-release@v2

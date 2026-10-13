@@ -4,6 +4,8 @@ name: ci
 # status check to gate on and a GLEW-shaped break -- which macOS is
 # structurally blind to, because macOS never links GLEW -- is caught before a
 # tag. There is no Linux job: the CMakeLists branches on APPLE and WIN32.
+#
+# Only for a PUBLIC repo: private repos share one small Actions allowance.
 on:
   push:
     branches: [main]
@@ -15,7 +17,7 @@ jobs:
     name: macOS
     runs-on: macos-14
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # The FFGL SDK is a submodule. Without this CMake fails at configure
           # time with a missing-directory error that reads like a broken repo.
@@ -24,54 +26,52 @@ jobs:
       - name: Configure
         # arm64 only, unlike the release build's universal arm64;x86_64 -- the
         # second slice doubles the build for no extra signal, because a source
-        # break is not architecture-specific.
-        #
-        # REBATE_BUILD_TOOLS is ON here where the release build turns it OFF:
-        # rbtest is the only place the physics is written down as a number,
-        # so compiling and running it is most of the value.
+        # break is not architecture-specific. GAUGE_BUILD_TOOLS is ON here
+        # where the release build turns it OFF: gutest is the only place the
+        # standards are written down as numbers to hold the strip to.
         run: >
           cmake -B build
           -DCMAKE_BUILD_TYPE=Release
           -DCMAKE_OSX_ARCHITECTURES=arm64
-          -DREBATE_BUILD_TOOLS=ON
+          -DGAUGE_BUILD_TOOLS=ON
 
       - name: Build
         run: cmake --build build --config Release --parallel
 
       - name: Parameters
         # No GL needed, so this one cannot be a runner problem.
-        run: ./build/rbtest --list
+        run: |
+          ./build/gutest --list
+          ./build/gutest --plugin source --list
 
-      - name: Physics
+      - name: The strip
         # The runner has no accelerated GL; the harness falls back to a
         # software context. 320x180, because software rasterisation is slow
-        # and every check here was written to hold at any raster: the wedges
-        # sample step centres, the grain's interval is the sample variance's
-        # own at whatever n the raster gives, and the rebate is laid out in
-        # film millimetres. verify.sh runs them at 1280x720 as well.
-        timeout-minutes: 20
+        # and every check was written to hold at any raster: the strip is laid
+        # out in film millimetres and measured by coverage, which is exact at
+        # any pixel size. verify.sh runs them at 1280x720 as well.
+        timeout-minutes: 40
         run: |
-          ./build/rbtest --curve    --size 320x180
-          ./build/rbtest --push     --size 320x180
-          ./build/rbtest --mask     --size 320x180
-          ./build/rbtest --grain    --size 320x180
-          ./build/rbtest --leak     --size 320x180
-          ./build/rbtest --cross    --size 320x180
-          ./build/rbtest --rebate   --size 320x180
-          ./build/rbtest --seed     --size 320x180
-          ./build/rbtest --resize   --size 320x180
-          ./build/rbtest --negative --size 320x180
+          ./build/gutest --perfs    --size 320x180
+          ./build/gutest --aperture --size 320x180
+          ./build/gutest --squeeze  --size 320x180
+          ./build/gutest --held     --size 320x180
+          ./build/gutest --leader   --size 320x180
+          ./build/gutest --flash    --size 320x180
+          ./build/gutest --track    --size 320x180
+          ./build/gutest --alpha    --size 320x180
+          ./build/gutest --resize   --size 320x180
+          ./build/gutest --negative --size 320x180
 
       - name: Controls
         # At 160x90 and two at a time, because the runner has no GPU and the
-        # question is only whether a control changed ANY subpixel. Graticule's
-        # first run of this step at 320x180 was still going at twenty minutes.
-        timeout-minutes: 25
+        # question is only whether a control changed ANY subpixel.
+        timeout-minutes: 40
         run: python3 tools/sweep.py --size 160x90 --jobs 2
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
-          name: rebate-macos-arm64
+          name: gauge-macos-arm64
           path: build/*.bundle
           if-no-files-found: error
 
@@ -79,7 +79,7 @@ jobs:
     name: Windows
     runs-on: windows-2022
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
 
@@ -89,15 +89,15 @@ jobs:
         run: >
           cmake -B build -A x64
           -DCMAKE_BUILD_TYPE=Release
-          -DREBATE_BUILD_TOOLS=OFF
+          -DGAUGE_BUILD_TOOLS=OFF
           -DVCPKG_TARGET_TRIPLET=x64-windows-static-md
           -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
 
       - name: Build
         run: cmake --build build --config Release --parallel
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
-          name: rebate-windows-x86_64
+          name: gauge-windows-x86_64
           path: build/Release/*.dll
           if-no-files-found: error
