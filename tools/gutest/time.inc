@@ -329,7 +329,7 @@ int runLeader( int width, int height, int perturb = 0, bool quiet = false )
 	const unsigned int roll = static_cast< unsigned int >( session.plugin->IndexOf( K_ROLL_LEADER ) );
 	int wrong = 0, read = 0;
 	std::string firstWrong;
-	double worstSwept = 0.0;
+	double worstSwept = 0.0, sweptTol = 0.0;
 	for( int frame = 0; frame < frames; ++frame )
 	{
 		session.plugin->SetFloatParameter( roll, frame == press ? 1.0f : 0.0f );
@@ -359,6 +359,7 @@ int runLeader( int width, int height, int perturb = 0, bool quiet = false )
 			//own centres say what it should be.
 			const double want = rd.sweptWant;
 			worstSwept = std::max( worstSwept, std::fabs( rd.swept - want ) );
+			sweptTol   = std::max( sweptTol, rd.sweptTol );
 			ok = rd.ring > 0.85 && std::fabs( rd.swept - want ) <= rd.sweptTol;
 			//The number, read once a count: on its first frame (the 8's second,
 			//PICTURE START having its first) and on the 2.
@@ -384,8 +385,9 @@ int runLeader( int width, int height, int perturb = 0, bool quiet = false )
 	const bool timed = wrong == 0;
 	if( !quiet )
 	{
-		std::printf( "leader: %d host frames at 24 Hz, %d wrong; the sweep within %.4f of ( j mod 24 ) / 24 of the circle everywhere  %s\n", read, wrong,
-		             worstSwept, verdict( timed ) );
+		std::printf( "leader: %d host frames at 24 Hz, %d wrong; the sweep within %.4f of ( j mod 24 ) / 24 of the circle everywhere "
+		             "(allowed %.4f)  %s\n",
+		             read, wrong, worstSwept, sweptTol, verdict( timed ) );
 		if( !timed )
 			std::printf( "  first wrong: %s\n", firstWrong.c_str() );
 	}

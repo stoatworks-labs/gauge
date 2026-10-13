@@ -95,7 +95,7 @@ Analogue variable-area, DTS time code, Dolby Digital and SDDS are drawn where a 
 What the implementation is measured against.
 
 - **SMPTE 139 / ISO 491, 35 mm film perforations** — the KS hole, its pitch and its edge distance; the frame line midway between two holes.
-- **SMPTE 59 and the sound-print apertures, SMPTE 40 (the photographic sound record)** — the Academy and anamorphic apertures, and where the analogue track sits.
+- **The 35 mm apertures, and SMPTE 40 (the photographic sound record on a release print)** — the Academy, anamorphic and full camera apertures and the projection width, and where the analogue track sits.
 - **ISO 69 / SMPTE 109, 16 mm film** — the hole, its pitch and edge distance; the frame line through the hole; the camera aperture.
 - **SMPTE 149 and 157, Super 8** — the hole, its pitch and edge distance, and the camera aperture.
 - **Melissa E. O'Neill, "PCG: A Family of Simple Fast Space-Efficient Statistically Good Algorithms for Random Number Generation" (Harvey Mudd College, 2014)** — the pcg_hash output mix behind the data tracks' bits, written out rather than copied from anyone's source.
