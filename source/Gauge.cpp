@@ -978,7 +978,7 @@ FFResult GaugePlugin::ProcessOpenGL( ProcessOpenGLStruct* pGL )
 		s.Set( "EdgePrint", values[ K_EDGE_PRINT ] > 0.5f && format.print.Present() ? 1 : 0 );
 		s.Set( "PrintFar", static_cast< float >( format.print.x0 ), static_cast< float >( format.print.x1 ) );
 		s.Set( "PrintNear", static_cast< float >( format.printNear.x0 ), static_cast< float >( format.printNear.x1 ) );
-		s.Set( "FramesPerLabel", format.framesPerLabel );
+		s.Set( "NumberEvery", format.print.Present() ? format.framesPerNumber : 0 );
 		s.Set( "GlyphUp", format.glyphUp );
 		s.Set( "GlyphAdvance", format.glyphAdvance );
 		int code[ 8 ] = {};
@@ -986,9 +986,9 @@ FFResult GaugePlugin::ProcessOpenGL( ProcessOpenGLStruct* pGL )
 			code[ i ] = static_cast< unsigned char >( look.code[ i ] );
 		glUniform4i( s.FindUniform( "Code0" ), code[ 0 ], code[ 1 ], code[ 2 ], code[ 3 ] );
 		glUniform4i( s.FindUniform( "Code1" ), code[ 4 ], code[ 5 ], code[ 6 ], code[ 7 ] );
-		const int64_t perLabel = std::max( format.framesPerLabel, 1 );
-		s.Set( "LabelBase", static_cast< int >( floorMod( floorDiv( first, perLabel ), 10000 ) ) );
-		s.Set( "LabelRem", static_cast< int >( floorMod( first, perLabel ) ) );
+		const int64_t every = std::max( format.framesPerNumber, 1 );
+		s.Set( "NumberBase", static_cast< int >( floorMod( floorDiv( first, every ), 10000 ) ) );
+		s.Set( "NumberRem", static_cast< int >( floorMod( first, every ) ) );
 		s.Set( "HashBase", static_cast< int >( floorMod( first, int64_t( 1 ) << 24 ) ) );
 		s.Set( "StillBase", static_cast< int >( floorMod( first, 37 ) ) );
 

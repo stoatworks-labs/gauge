@@ -85,11 +85,11 @@ struct Format
 	bool dolby = false;///< blocks between the near holes
 	Band sdds;         ///< near band; the far one is mirrored at the far edge
 
-	/// Edge print: the band across the film, the frames between labels, and
-	/// which way a glyph's top points (+1 toward the far edge, -1 toward the
-	/// reference edge).
+	/// Edge print: the band across the film, the frames between key numbers
+	/// (the stock's code is on every frame), and which way a glyph's top points
+	/// (+1 toward the far edge, -1 toward the reference edge).
 	Band print;
-	int framesPerLabel = 0;
+	int framesPerNumber = 0;
 	int glyphUp        = 1;
 	/// +1: text runs toward the tail. A motion picture print with its edge
 	/// print on the near side runs it toward the head, or it would read

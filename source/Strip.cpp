@@ -85,7 +85,7 @@ Format make16( const char* name )
 	f.imageX0        = 7.98 - 0.5 * 0.404 * kInch;
 	f.imageX1        = 7.98 + 0.5 * 0.404 * kInch;
 	f.imageHeight    = 0.295 * kInch;
-	f.framesPerLabel = 20;//key numbers every half foot: 40 frames to the foot
+	f.framesPerNumber = 20;//key numbers every half foot: 40 frames to the foot
 	return f;
 }
 
@@ -102,7 +102,7 @@ std::array< Format, kFormatCount > makeFormats()
 		f.channels       = 1;
 		f.dts            = k35Dts;
 		f.print          = k35PrintFar;
-		f.framesPerLabel = 16;//one foot
+		f.framesPerNumber = 16;//one foot
 		all[ kAcademy ]  = f;
 	}
 	{
@@ -125,7 +125,7 @@ std::array< Format, kFormatCount > makeFormats()
 		f.imageX1        = 0.5 * k35Width + 0.5 * 0.980 * kInch;
 		f.imageHeight    = 0.735 * kInch;
 		f.print          = k35PrintFar;
-		f.framesPerLabel = 16;
+		f.framesPerNumber = 16;
 		all[ kFull ]     = f;
 	}
 	{
@@ -141,7 +141,7 @@ std::array< Format, kFormatCount > makeFormats()
 		f.imageAcross    = true;
 		f.print          = k35PrintFar;
 		f.printNear      = k35PrintNear;
-		f.framesPerLabel = 1;
+		f.framesPerNumber = 1;//the still roll numbers every frame its own way
 		f.glyphUp        = -1;
 		all[ kStill ]    = f;
 	}

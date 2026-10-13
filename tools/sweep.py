@@ -56,8 +56,6 @@ CONTEXT = {
     "effect": {
         # Cell controls are live on the default Cell. Framing's far end shows
         # the film's edges; Rack and Drift move the frame line.
-        # A label frame (every 16th) in the gate, for the edge print.
-        "Edge Print": {"_frames": "41"},
         # The track carries a tone.
         "Track Level": {"_tone": "3=0.5"},
         # Strip controls.
@@ -83,7 +81,6 @@ CONTEXT = {
         "Surround": {"Framing": "1"},
     },
     "source": {
-        "Edge Print": {"_frames": "41"},
         "Size": STRIP,
         "Angle": {"Mode": "1", "_low": "0.5", "_high": "0.75"},
         "Position": STRIP,
@@ -185,6 +182,8 @@ def main():
     ap.add_argument("--binary", default=str(ROOT / "build" / "gutest"))
     ap.add_argument("--size", default="%dx%d" % (WIDTH, HEIGHT))
     ap.add_argument("--jobs", type=int, default=0)
+    ap.add_argument("--no-context", action="store_true",
+                    help="sweep every control on the defaults alone: the honest list of what needs context")
     args = ap.parse_args()
     if "x" in args.size:
         WIDTH, HEIGHT = (int(v) for v in args.size.split("x", 1))
@@ -206,7 +205,8 @@ def main():
             if kind in ("buffer", "text"):
                 skipped.append((plugin, name, "the host's FFT input: Track Level sweeps what it does"))
                 continue
-            work.append((binary, scratch, plugin, pid, name, low, high, CONTEXT[plugin].get(name, {})))
+            context = {} if args.no_context else CONTEXT[plugin].get(name, {})
+            work.append((binary, scratch, plugin, pid, name, low, high, context))
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=jobs) as pool:
         results = list(pool.map(sweep_one, work))

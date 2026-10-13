@@ -129,13 +129,13 @@ uniform vec2 Sdds;
 uniform int EdgePrint;
 uniform vec2 PrintFar;
 uniform vec2 PrintNear;
-uniform int FramesPerLabel;
+uniform int NumberEvery;    //frames between key numbers
 uniform int GlyphUp;        //+1: a glyph's top toward the far edge
 uniform int GlyphAdvance;   //+1: text runs toward the tail
 uniform ivec4 Code0;        //the stock's edge code, ASCII, 0 ends it
 uniform ivec4 Code1;
-uniform int LabelBase;      //the label number at or before frame base
-uniform int LabelRem;       //base mod FramesPerLabel
+uniform int NumberBase;     //the key number at or before frame base
+uniform int NumberRem;      //base mod NumberEvery
 uniform int HashBase;       //base, for the data tracks' bits
 uniform int StillBase;      //base mod 37, the still roll's frame numbers
 
@@ -572,7 +572,7 @@ float labelLength( int digits, bool withCode, bool suffixA, vec2 band )
 
 float edgeInk( vec2 f )
 {
-	if( FramesPerLabel <= 0 )
+	if( NumberEvery <= 0 )
 		return 0.0;
 
 	if( ImageAcross != 0 )
@@ -599,27 +599,20 @@ float edgeInk( vec2 f )
 		return ink;
 	}
 
-	//A key number every FramesPerLabel frames, from 1 mm into its frame
-	//(toward the tail, or from 1 mm short of the frame's end toward the head).
-	float period = float( FramesPerLabel ) * Pitch;
-	float y      = f.y + float( LabelRem ) * Pitch;
-	float len    = labelLength( 4, true, false, PrintFar );
-	float t;
-	float L;
-	if( GlyphAdvance > 0 )
-	{
-		L = floor( ( y - 1.0 ) / period );
-		t = ( y - 1.0 ) - L * period;
-	}
-	else
-	{
-		L = ceil( ( y - ( Pitch - 1.0 ) ) / period );
-		t = L * period + Pitch - 1.0 - y;
-	}
-	if( t > len )
+	//The stock's code on every frame, from 1 mm into it (toward the tail, or
+	//from 1 mm short of its end toward the head), and on every NumberEvery-th
+	//frame a key number after it: a registered Cell shows the edge print
+	//steady, and the number once a foot.
+	float fd = GlyphAdvance > 0 ? floor( ( f.y - 1.0 ) / Pitch ) : floor( f.y / Pitch );
+	float t  = GlyphAdvance > 0 ? ( f.y - 1.0 ) - fd * Pitch : fd * Pitch + Pitch - 1.0 - f.y;
+	int n    = NumberRem + int( fd );
+	int foot = n >= 0 ? n / NumberEvery : -( ( -n + NumberEvery - 1 ) / NumberEvery );
+	bool keyed = n - foot * NumberEvery == 0;
+	float len  = labelLength( keyed ? 4 : 0, true, false, PrintFar );
+	if( t < 0.0 || t > len )
 		return 0.0;
-	int number = ( LabelBase + int( L ) + 10000 ) % 10000;
-	return labelInk( f.x, PrintFar, t, number, 4, true, false );
+	int number = ( ( NumberBase + foot ) % 10000 + 10000 ) % 10000;
+	return labelInk( f.x, PrintFar, t, number, keyed ? 4 : 0, true, false );
 }
 )";
 
