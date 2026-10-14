@@ -152,7 +152,7 @@ double SizeFraction( float value );
 float SizeParam( double fraction );
 
 /// Angle (strip): -180..+180 degrees. 0 lays the film's length left to
-/// right with the reference edge at the top.
+/// right with the soundtrack along the bottom and the edge print along the top.
 double AngleDegrees( float value );
 float AngleParam( double degrees );
 
