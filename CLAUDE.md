@@ -84,15 +84,23 @@ the leader.
   each sit in their own MODULE target, or both plugins register into both bundles.
 - `FFGLScopedFBOBinding.h` is not in the umbrella header; include `<ffglex/FFGLScopedFBOBinding.h>`.
 - macOS build must be universal. Verify with `lipo`, never the build log.
+- **Generated, do not edit here:** `source/StoatworksAbout.h` (stoatworks-backend's
+  `sync-about.py`, from the website's `projects.json`: User guide, Project page, Source on
+  GitHub, Support the work); `ATTRIBUTIONS.md`, `.github/FUNDING.yml` and the issue forms
+  (the backend's sync scripts, once the repo is public); the README's downloads block
+  (`gen-downloads.py`, after the tag).
+- `docs/USER-GUIDE.md` is the user guide, published at
+  `stoatworks-labs.com/software/gauge/guide/`. Keep it in step with the controls.
 
 ## Not done yet
-- **Never loaded into Resolume**, on either platform, and never built for Windows. `oxbow`
-  loads both bundles.
+- **Never loaded into Resolume on macOS.** `oxbow` loads both bundles.
+- Windows: gated in Arena 7.27.1 on win-lab (llvmpipe, no sound): 15 passed, audio skipped; effect 24 live,
+  leader 20 live + Edge Print, Shutter inconclusive; plugin-bench
+  `arena/expect/gauge.json`.
 - Seen on a test card and Resolume's demo clips through `--pipe`, never on camera footage.
-- No GitHub repo, no tag, no website registration, no user guide, no browser demo, no
-  OpenFX port, no presets. `StoatworksAbout.h` and `ATTRIBUTIONS.md` are provisional hand
-  copies until the backend's sync scripts know about gauge.
-- `.github/workflows/` are adapted and have never run. They are for a PUBLIC repo only.
+- No browser demo, no OpenFX port, no presets.
+- `.github/workflows/` are adapted and hadn't run before v0.1.0. They are for a PUBLIC repo
+  only, which this now is (`github.com/stoatworks-labs/gauge`).
 
 ## Diagnostics
 
@@ -100,3 +108,5 @@ the leader.
 
     ~/Library/Logs/gauge/gauge.YYYY-MM-DD.log        (macOS)
     %LOCALAPPDATA%\gauge\logs\gauge.YYYY-MM-DD.log   (Windows)
+
+`GAUGE_LOG_DIR` overrides the folder.

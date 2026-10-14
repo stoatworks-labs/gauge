@@ -11,8 +11,10 @@ anybody this works.
 The film strip itself, as two FFGL 2.1 plugins for Resolume Arena and Avenue from one
 class (`GaugePlugin`): **SW Gauge** (`GU01`, effect) prints the clip onto the strip;
 **SW Gauge Leader** (`GU02`, source) runs a countdown leader on it. C++17 + GLSL 4.10,
-CMake, universal macOS bundles and Windows DLLs. MIT. Intended home
-`github.com/stoatworks-labs/gauge`, which does not exist yet.
+CMake, universal macOS bundles and Windows DLLs. MIT. Public at
+`github.com/stoatworks-labs/gauge` from v0.1.0 (2026-10-14), with its project page at
+`stoatworks-labs.com/software/gauge/` and the user guide (`docs/USER-GUIDE.md`) at
+`stoatworks-labs.com/software/gauge/guide/`.
 
 Asked for by Allan on 2026-10-12: "emulates the actual film strip, so it adds
 perforations, frame lines, borders etc … an anamorphic style squeeze … a full screen
@@ -299,9 +301,12 @@ once. Angle's two ends are the same turn, so it sweeps 0° against 90°.
 - **Output alpha**: film is opaque (a transparent clip prints as black film); holes and
   the surround are what Holes and Surround say; Mix blends premultiplied.
 - **No factory presets**, no Fit for the source, no Frames for the source.
-- **StoatworksAbout.h and ATTRIBUTIONS.md are provisional hand copies** (no guide and no
-  project page, so those buttons are left out), as graticule's were; the first sync after
-  gauge is registered replaces them.
+- **StoatworksAbout.h is generated** by stoatworks-backend's `sync-about.py` from the
+  website's `projects.json`: four buttons, User guide, Project page, Source on GitHub and
+  Support the work. It started as a hand copy with the first two left out, as graticule's
+  did, until gauge was registered. `ATTRIBUTIONS.md`, `.github/FUNDING.yml` and the issue
+  forms come from the backend's sync scripts once the repo is public. Edit none of them
+  here.
 - **The commit trailer** is `Claude Opus 5.5`, the model that wrote it, where BRIEF.md's
   template says Fable 5.1.
 
@@ -316,19 +321,30 @@ once. Angle's two ends are the same turn, so it sweeps 0° against 90°.
 Apple's software renderer at 320×180 (`--software`), at several minutes a check.
 Both bundles are universal, export `_plugMain`, carry their identifiers and ad-hoc sign;
 `oxbow` reports `SW Gauge` / `GU01` / effect and `SW Gauge Leader` / `GU02` / source and
-renders 120 frames through each. All 50 controls change the picture.
+renders 120 frames through each. All 50 swept controls change the picture: every one of
+the 51 declared but the Audio input, the host's FFT, which Track Level sweeps.
 
 ### Assumed, or not done
 
-- ☠️ **Never loaded into Resolume**, on macOS or Windows. Nothing in a host has seen the
+- ☠️ **Never loaded into Resolume on macOS.** Nothing in a host on a Mac has seen the
   parameters, the Audio input, the beat info or the event buttons.
-- **Never built for Windows.** The workflows are adapted from rebate and jackpot and have
-  never run; they are for a public repo only.
+
+- **Windows: gated in Resolume Arena 7.27.1 on win-lab** (2026-10-14; MSVC x64; Mesa
+  llvmpipe, no GPU, no sound device): 15 passed, 0 failed, 1 skipped (audio). Every
+  control as declared; the effect's 24 testable controls all live (7 under a
+  precondition); the leader's 20 live (7 under a precondition) with Edge Print and Shutter
+  inconclusive against its moving countdown; none dead. The expectation is plugin-bench
+  `arena/expect/gauge.json`. Audio, Track Level and the event buttons were never fed or
+  pressed there.
+
+- **The workflows** are adapted from rebate and jackpot and hadn't run before v0.1.0.
+  They are for a public repo only, which this now is.
 - **Resolume's FFT bins and beat info** are the fleet's assumptions (jackpot's transport);
   Start On Beat/Bar and Rate Beat have met only the harness's exact bar phase.
 - **The placements by eye** (above) are not measured against anything.
 - **Seen on** a synthetic card and Resolume's bundled demo clips, never camera footage.
-- No user guide, browser demo, OpenFX port or presets.
+- No browser demo, OpenFX port or presets. The user guide is `docs/USER-GUIDE.md`; keep it
+  in step with the controls.
 
 ---
 
@@ -341,9 +357,6 @@ renders 120 frames through each. All 50 controls change the picture.
   what an operator expects.
 - **Real programme sound on the leader's own track?** The source has none; a "sound
   check" tone on the counts would be invented.
-- **Rebate's holes are turned through 90°.** Its `Frame.h` has the 2.794 mm dimension
-  along its horizontal strip; SMPTE's 0.110 in runs across the film, so on 135 film
-  running sideways the holes should be taller than wide. Worth a look in rebate.
 - **70 mm, VistaVision and 2-perf** would be more rows in `Strip.cpp` and the published
   table; the Academy leader (11 to 3 in feet, upside down for the projectionist) another
   leader style.
@@ -353,7 +366,9 @@ renders 120 frames through each. All 50 controls change the picture.
 ## Siblings
 
 - **rebate** — the emulsion and its scan; the harness shape, the 5x7 font by way of
-  graticule, the strip it draws as a backdrop.
+  graticule, the strip it draws as a backdrop. Its KS holes were turned through 90° when
+  gauge was built (the 2.794 mm dimension ran along the strip); rebate fixed them on
+  2026-10-13 (`6a69209`), so the two strips agree now.
 - **gate** — the projector: put it after gauge for flicker, weave and dirt.
 - **jackpot** — a source and an effect from one class, `Transport`, the stroked face.
 - **regauss** — the FFT input and the sqrt of its bins.

@@ -8,9 +8,15 @@
 > squeeze comes back half as wide as it is tall, every frame of a moving strip keeps the
 > picture it was exposed with, the countdown runs frame for frame to the picture at
 > exactly eight seconds (or eight beats, on the bar), and the optical track is the sound at
-> the film's speed. Ten negative controls prove the checks can fail. It has **never been
-> loaded into Resolume**; [oxbow](https://github.com/stoatworks-labs/oxbow), a real FFGL
-> host that is not Resolume, loads both bundles. See [Status](#status).
+> the film's speed. Ten negative controls prove the checks can fail. It's **never been
+> loaded into Resolume on macOS**; [oxbow](https://github.com/stoatworks-labs/oxbow), a real
+> FFGL host that isn't Resolume, loads both bundles there.
+> On Windows, both load, register and render in Resolume Arena 7.27.1 on a machine with
+> software rendering and no GPU or sound device, every control is as declared, and every
+> control that can act without sound changed the picture there but two of the leader's, which
+> were too close to call.
+> The full rundown is under [Status](#status), and every control is in the
+> [user guide](docs/USER-GUIDE.md).
 
 The film strip itself, as two FFGL plugins for [Resolume](https://resolume.com) Arena and
 Avenue: **SW Gauge**, an effect that prints your clip onto 35 mm, 16 mm or Super 8, and
@@ -41,7 +47,7 @@ None of these is drawn at a place on the screen. Each is the strip doing what it
 - **Perforations, frame lines and borders where the standards put them.** 35 mm's KS holes
   are 2.794 mm across and 1.981 along, four to a frame on a 4.75 mm pitch, with the frame
   line midway between two of them. 16 mm's frame line runs through its hole. Super 8's
-  small square hole sits beside the middle of its frame.
+  one small hole, 0.914 mm across and 1.143 along, sits beside the middle of its frame.
 - **The frame line is what the aperture leaves.** Academy's thick black bar (3 mm) and
   Scope's hairline (0.4 mm) are the same subtraction, the camera aperture's height from the
   frame pitch. Super 8's comes to 0.014 mm, which is to say the frames very nearly touch.
@@ -107,8 +113,9 @@ default, and **After** (Black or Clear) for what follows a leader that doesn't l
 
 The defaults are a 35 mm Academy release print, one frame filling the output with its
 holes and track either side, at 24 fps, the clip held frame by frame. Mode Strip gives a
-strip a third of the output high running at two frames a second. Clear holes and a Clear
-surround let whatever's on the layers below show through the film.
+strip 30% of the output high running at two frames a second. Clear holes and a Clear
+surround let whatever's on the layers below show through the film. The
+[user guide](docs/USER-GUIDE.md) has every control with its range and default.
 
 > **Photosensitivity.** Auto Flash on Beat flashes a whole frame white once a beat:
 > 2 Hz at 120 bpm, and 3 Hz from 180 bpm up, where it enters the 3–30 Hz band broadcast
@@ -116,7 +123,8 @@ surround let whatever's on the layers below show through the film.
 
 ## Status
 
-**v0.1.0, unreleased and honestly early: 13 October 2026.**
+**v0.1.0, 14 October 2026, and still early days.** User guide:
+[stoatworks-labs.com/software/gauge/guide](https://stoatworks-labs.com/software/gauge/guide/).
 
 ### Measured offline, on macOS
 
@@ -137,7 +145,7 @@ and 333×187 by hand). What it establishes:
 | `--resize` | a moving strip's held frames survive the raster doubling (the ring reallocated from 112×96 to 224×176 cells) with every frame unchanged |
 | `--negative` | ten broken models (a hole turned through 90°, the 35 mm frame line through a hole, the picture centred on a sound print, the squeeze ignored, held frames re-exposed every frame, 25 frames to a count, a two-frame flash, the track at the wrong speed, opaque clear holes, a resize that forgets) each **fail** their check |
 | mutation | one character of the shipped GLSL (the holes' repeat, `+ jh` to `- jh`) caught by `--perfs`, `--aperture` and `--alpha`, then reverted |
-| `tools/sweep.py` | all **50** controls of both plugins measurably change the picture |
+| `tools/sweep.py` | every control of both plugins but the Audio input (the host's FFT, which Track Level sweeps) measurably changes the picture: **50** of the 51 declared |
 | shaders | all four compile through `glslc` as the plugin assembles them |
 | the bundles | both universal, export `plugMain` and ad-hoc sign; `oxbow` sees `SW Gauge` / `GU01` / effect and `SW Gauge Leader` / `GU02` / source, and renders 120 frames through each |
 
@@ -155,13 +163,26 @@ Under a fortieth of a 60 fps frame either way. The held frames cost memory inste
 
 ### Not established
 
-It has **never been loaded into Resolume**, on either platform, and nothing has been
-built for Windows yet. How the effect's 27 controls and the source's 24 present in
-Arena's inspector, whether Resolume
-feeds the Audio input the way the harness does, and what the host's beat info really does
-to Start On are untested. The look has been seen on a test card and Resolume's bundled
-demo clips through `gutest --pipe`, never on camera footage or a real film scan. No
-OpenFX port, no browser demo and no factory presets; none is needed for 0.1.0.
+It's **never been loaded into Resolume on macOS**. There, how the effect's 27 controls and
+the source's 24 present in Arena's inspector, whether Resolume feeds the Audio input the
+way the harness does, and what the host's beat info really does to Start On are untested;
+the one host it's run in on a Mac is `oxbow`, for 120 frames through each bundle.
+
+On Windows, the x64 build loads, registers and renders in Resolume Arena 7.27.1 on the
+fleet's Windows machine, which has software rendering (Mesa llvmpipe), no GPU and no sound
+device. It passed all 15 of the fleet's Arena checks that can run there (the audio one
+is skipped): every control as declared,
+by name, order, type, range and default; all 24 of the effect's controls that can act
+without sound changed the picture there (seven of them with another control set first),
+and so did 20 of the leader's 22, with Edge Print and Shutter too close to call against a
+countdown that never sits still; and Arena's log had nothing to complain about. The Audio
+input and Track Level couldn't be tried without a sound card, and nobody has looked at its
+panel there.
+
+The look has been seen on a test card and Resolume's bundled demo clips through `gutest
+--pipe`, never on camera footage or a real film scan. There's a
+[user guide](docs/USER-GUIDE.md), but no OpenFX port, no browser demo and no factory
+presets; none is needed for 0.1.0.
 
 ## Build
 
