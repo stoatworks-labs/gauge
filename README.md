@@ -28,6 +28,38 @@ Avenue: **SW Gauge**, an effect that prints your clip onto 35 mm, 16 mm or Super
 full screen, and a strip of its own recent past running across it. Rendered by `gutest
 --pipe`, the offline harness, not captured from Resolume.</sub>
 
+<!-- downloads:start -->
+
+## Download
+
+**[v0.1.0](https://github.com/stoatworks-labs/gauge/releases/tag/v0.1.0)** — prebuilt for macOS and Windows. Pick your platform:
+
+<details>
+<summary><b>macOS</b> — Universal (Apple Silicon + Intel)</summary>
+
+| Build | Download | Size |
+| --- | --- | --- |
+| Universal (Apple Silicon + Intel) · .dmg disk image | [`gauge-0.1.0-macos-universal.dmg`](https://github.com/stoatworks-labs/gauge/releases/download/v0.1.0/gauge-0.1.0-macos-universal.dmg) | 559 KB |
+| Universal (Apple Silicon + Intel) · .zip archive | [`gauge-macos-universal.zip`](https://github.com/stoatworks-labs/gauge/releases/latest/download/gauge-macos-universal.zip) | 495 KB |
+
+</details>
+
+<details>
+<summary><b>Windows</b> — x64</summary>
+
+| Build | Download | Size |
+| --- | --- | --- |
+| x64 · .exe installer | [`gauge-0.1.0-windows-x86_64-setup.exe`](https://github.com/stoatworks-labs/gauge/releases/download/v0.1.0/gauge-0.1.0-windows-x86_64-setup.exe) | 256 KB |
+| x64 · .zip archive | [`gauge-windows-x86_64.zip`](https://github.com/stoatworks-labs/gauge/releases/latest/download/gauge-windows-x86_64.zip) | 282 KB |
+
+</details>
+
+All builds, checksums and release notes: [github.com/stoatworks-labs/gauge/releases](https://github.com/stoatworks-labs/gauge/releases).
+
+macOS builds are signed and notarised and open normally. The Windows builds are unsigned, so SmartScreen warns once.
+
+<!-- downloads:end -->
+
 ## The one idea
 
 A film strip is a standard.
