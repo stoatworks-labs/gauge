@@ -332,8 +332,9 @@ the 51 declared but the Audio input, the host's FFT, which Track Level sweeps.
 - **Windows: gated in Resolume Arena 7.27.1 on win-lab** (2026-10-14; MSVC x64; Mesa
   llvmpipe, no GPU, no sound device): 15 passed, 0 failed, 1 skipped (audio). Every
   control as declared; the effect's 24 testable controls all live (7 under a
-  precondition); the leader's 20 live (7 under a precondition) with Edge Print and Shutter
-  inconclusive against its moving countdown; none dead. The expectation is plugin-bench
+  precondition); the leader's 20 live (7 under a precondition) in run 1 and 17 in the formal
+  run 2 on the release build, the rest inconclusive against its moving countdown (Edge Print
+  and Shutter in both; Squeeze, Soundtracks and Travel in run 2 only); none dead. The expectation is plugin-bench
   `arena/expect/gauge.json`. Audio, Track Level and the event buttons were never fed or
   pressed there.
 

@@ -95,7 +95,7 @@ the leader.
 ## Not done yet
 - **Never loaded into Resolume on macOS.** `oxbow` loads both bundles.
 - Windows: gated in Arena 7.27.1 on win-lab (llvmpipe, no sound): 15 passed, audio skipped; effect 24 live,
-  leader 20 live + Edge Print, Shutter inconclusive; plugin-bench
+  leader 20 live (17 in a second run), the rest inconclusive; plugin-bench
   `arena/expect/gauge.json`.
 - Seen on a test card and Resolume's demo clips through `--pipe`, never on camera footage.
 - No browser demo, no OpenFX port, no presets.

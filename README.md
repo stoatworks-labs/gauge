@@ -174,8 +174,9 @@ device. It passed all 15 of the fleet's Arena checks that can run there (the aud
 is skipped): every control as declared,
 by name, order, type, range and default; all 24 of the effect's controls that can act
 without sound changed the picture there (seven of them with another control set first),
-and so did 20 of the leader's 22, with Edge Print and Shutter too close to call against a
-countdown that never sits still; and Arena's log had nothing to complain about. The Audio
+and so did 20 of the leader's 22 in one run and 17 in a second, the rest
+too close to call against a countdown that never sits still (Edge Print and Shutter in
+both runs); and Arena's log had nothing to complain about. The Audio
 input and Track Level couldn't be tried without a sound card, and nobody has looked at its
 panel there.
 
