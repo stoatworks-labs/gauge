@@ -56,8 +56,10 @@ CONTEXT = {
     "effect": {
         # Cell controls are live on the default Cell. Framing's far end shows
         # the film's edges; Rack and Drift move the frame line.
-        # The track carries a tone.
-        "Track Level": {"_tone": "3=0.5"},
+        # The track carries a tone, on bin 1: the shader leaves out any bin
+        # finer than half a pixel rather than alias it, and at CI's 160x90
+        # bin 3 already is, so Track Level had nothing to scale there.
+        "Track Level": {"_tone": "1=0.5"},
         # Strip controls.
         "Size": STRIP,
         # Angle's two ends are the same turn: sweep 0 against 90 degrees.
