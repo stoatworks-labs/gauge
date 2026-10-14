@@ -49,7 +49,10 @@ jobs:
         # software context. 320x180, because software rasterisation is slow
         # and every check was written to hold at any raster: the strip is laid
         # out in film millimetres and measured by coverage, which is exact at
-        # any pixel size. verify.sh runs them at 1280x720 as well.
+        # any pixel size. verify.sh runs them at 1280x720 as well. Not
+        # --negative here: its ten broken models check the checker, not the
+        # plugin, and on the runner's software GL they ran past 18 minutes and
+        # timed the step out (2026-10-14). verify.sh still runs them.
         timeout-minutes: 40
         run: |
           ./build/gutest --perfs    --size 320x180
@@ -61,7 +64,6 @@ jobs:
           ./build/gutest --track    --size 320x180
           ./build/gutest --alpha    --size 320x180
           ./build/gutest --resize   --size 320x180
-          ./build/gutest --negative --size 320x180
 
       - name: Controls
         # At 160x90 and two at a time, because the runner has no GPU and the
