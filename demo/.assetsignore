@@ -1,0 +1,8 @@
+# Not part of the page. tools/ holds check_shaders.py (the repo-side check that
+# the demo's copies are still the plugin's), build-wasm.sh and crosscheck/ (the
+# page against gutest, frame for frame); wasm/ holds the page's host glue and
+# GL shim, which are compiled INTO gauge-core.wasm, and the build's input
+# manifest. wrangler would otherwise upload them and serve them, which is
+# neither useful nor anybody's business.
+tools/
+wasm/

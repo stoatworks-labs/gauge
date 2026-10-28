@@ -29,6 +29,8 @@
 #                   --alpha     film opaque, only what is not film clear
 #                   --resize    a moving strip keeps its frames across a resize
 #                   --negative  every one of those FAILS on a perturbed model
+#   browser demo  the page's GLSL is the plugin's, its WebAssembly is built
+#                 from the current sources, and it draws what gutest draws.
 #   pipe          the fleet's frame format, and its refusals.
 #   sweep         does every control of both plugins change the picture.
 #   bench         the render cost, for the record. Not pass/fail.
@@ -103,6 +105,40 @@ else
 	printf '%s\n' "$hits" | sed 's/^/      /'
 fi
 rm -rf "$dir"
+
+#---------------------------------------------------------------------------
+# The browser demo (demo/, gauge-demo.stoatworks-labs.com). check_shaders.py:
+# the page's copy of the GLSL is source/Shaders.cpp's to the character, joined
+# in the plugin's order, and demo/gauge-core.wasm was built from the current
+# sources. crosscheck.mjs: the page's WebAssembly and shaders in headless
+# Chrome against this build's gutest --pipe on the same frames, and its
+# negative control (a broken model on the page's side must be caught). The
+# crosscheck needs node and Google Chrome and is skipped without them.
+#---------------------------------------------------------------------------
+step "browser demo"
+if out=$(python3 demo/tools/check_shaders.py 2>&1); then
+	pass "$( printf '%s\n' "$out" | tail -1 )"
+else
+	fail "demo/tools/check_shaders.py: the demo's copy has drifted"
+	printf '%s\n' "$out" | grep -E '^FAIL|^ ' | sed 's/^/      /'
+fi
+CHROME_APP="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+if command -v node >/dev/null 2>&1 && [ -x "$CHROME_APP" ]; then
+	if out=$(node demo/tools/crosscheck/crosscheck.mjs --gutest "$GUTEST" 2>&1); then
+		pass "crosscheck, the page against gutest --pipe: $( printf '%s\n' "$out" | tail -1 )"
+	else
+		fail "crosscheck: the page does not draw what gutest draws"
+		printf '%s\n' "$out" | sed 's/^/      /'
+	fi
+	if out=$(node demo/tools/crosscheck/crosscheck.mjs --gutest "$GUTEST" --negative 2>&1); then
+		pass "crosscheck --negative: $( printf '%s\n' "$out" | tail -1 )"
+	else
+		fail "crosscheck --negative: a broken model on the page's side was not caught"
+		printf '%s\n' "$out" | sed 's/^/      /'
+	fi
+else
+	printf '   skipped the crosscheck: it needs node and Google Chrome\n'
+fi
 
 for size in 320x180 1280x720; do
 	step "physics at $size"
