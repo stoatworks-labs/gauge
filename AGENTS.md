@@ -86,6 +86,7 @@ only the SMPTE Universal style. A negative stock: rebate does negatives properly
 | `tools/gutest/` | The harness: `main.cpp` (sessions, sources, plumbing), `geometry.inc`, `time.inc`, `signal.inc`, `checks.inc`. |
 | `tools/sweep.py` | No control of either plugin is silently dead. |
 | `tools/verify.sh` | All of it, on a fresh universal build. |
+| `demo/` | The browser demo: the plugin compiled to WebAssembly, its shaders, the page. See "The browser demo". |
 
 Per host frame: the clock and the film position (double, CPU); presses and the beats they
 wait for; the camera and the visible frames (through the whole shutter); the ring
@@ -344,8 +345,59 @@ the 51 declared but the Audio input, the host's FFT, which Track Level sweeps.
   Start On Beat/Bar and Rate Beat have met only the harness's exact bar phase.
 - **The placements by eye** (above) are not measured against anything.
 - **Seen on** a synthetic card and Resolume's bundled demo clips, never camera footage.
-- No browser demo, OpenFX port or presets. The user guide is `docs/USER-GUIDE.md`; keep it
-  in step with the controls.
+- No OpenFX port or presets. The browser demo is below. The user guide is
+  `docs/USER-GUIDE.md`; keep it in step with the controls.
+
+---
+
+## The browser demo (2026-10-28)
+
+`demo/` is <https://gauge-demo.stoatworks-labs.com>, built to the fleet's `resolume-demo`
+kit rules, zoetrope's way: it **runs the plugin rather than a port of it**.
+
+- **`gauge-core.wasm` is the plugin's C++, unmodified**: Gauge.cpp, Strip, Camera,
+  HeldFrames, Controls, Font, Lettering, Shaders and Diag, with the SDK's
+  CFFGLPluginManager / CFFGLPlugin, FFGLLog, FFGLShader, FFGLScreenQuad and the scoped
+  bindings. Left out: EffectPlugin.cpp and SourcePlugin.cpp (the registrations), so also
+  plugMain and CFFGLPluginInfo; the page constructs `GaugePlugin( true )` and
+  `GaugePlugin( false )` itself. So the leader's numerals are Lettering.cpp's strokes and
+  the distance field built from them at start-up, exactly as in Resolume. `-D__linux__`
+  goes only to the files that include the SDK. Committed, with `demo/wasm/inputs.sha256`
+  pinning every input; rebuild with `demo/tools/build-wasm.sh` (needs `em++`), then
+  `python3 demo/tools/check_shaders.py`.
+- **The host** (`demo/wasm/glue.cpp`) forwards SetFloatParameter, then each frame SetTime,
+  SetBeatInfo and ProcessOpenGL in gutest's Session order: one input for the effect, none
+  for the source (which takes its size from the viewport). `GAUGE_LOG_DIR` must be set
+  before the first instance is made: Diag opens its log in the constructor.
+- **Both plugins, one panel.** The two declaration lists are merged in order (each is a
+  subsequence of the Kind enum); rows the chosen plugin lacks are hidden, and the source's
+  Surround hides the effect's fourth element (Clip). The merge throws if the two ever
+  declare a shared control differently. `Size` is addressed as `param-size` in the URL,
+  because the kit owns `?size=`; `?plugin=leader` opens the source.
+- **What the page cannot do**: no audio (Audio is shown read-only and never written, so the
+  track is a constant band and Track Level does nothing there); the tempo is a simulated
+  BPM clock handed to SetBeatInfo with a bar phase; the clock is the browser's, and the
+  plugin's own vote settles it as seconds; the About buttons open their links from the
+  page, since the plugin's handler calls `std::system`. The page's `differences` list says
+  all of this.
+- **Verified** (2026-10-28): `demo/tools/crosscheck/crosscheck.mjs` drives the page's
+  `.wasm` and shaders in headless Chrome exactly as gutest's Session drives the native
+  build (seconds declared through `gu_declare_seconds`, a bar phase every frame), pipes the
+  same input bytes through `gutest --pipe`, and compares every frame: eleven scenarios,
+  521 frames, every pixel within one level on ANGLE/Metal (M4 Max) and within four on
+  SwiftShader. `--negative` switches a Perturb model on in the page's instance only
+  (`gu_perturb`) and every scenario is caught. The page itself was loaded headlessly: no
+  console errors; the controls moved there (Format, Mode, Angle, Travel, Surround, Holes,
+  a preset, the Plugin dropdown) and Roll Leader changed the picture; the Leader's panel
+  is its own declaration order with three Surround elements; embed mode renders the
+  output alone; nothing scrolls sideways at 390 px. Every control was not swept on the
+  page: `tools/sweep.py` does that for the plugin, and the page sets each one by the index
+  the plugin's own declaration gives. `tools/verify.sh` runs
+  check_shaders.py, the crosscheck and its negative control (the last two need node and
+  Google Chrome, and are skipped without them).
+- **Traps**: the build prints one `RAND_MAX` redefinition warning from the SDK's
+  platform header under `-D__linux__`; it is harmless. Pass `EM_CACHE` to a writable
+  directory if emscripten's own cache is not.
 
 ---
 

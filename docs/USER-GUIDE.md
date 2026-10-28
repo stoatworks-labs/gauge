@@ -532,7 +532,11 @@ shader is caught. Every control but the Audio input measurably changes the pictu
   on camera footage or a film scan.
 - **The inspector shows slider positions**, not frames a second or degrees. This guide gives the
   ranges.
-- **No presets**, no OpenFX version and no browser demo.
+- **No presets** and no OpenFX version.
+- **The browser demo** at [gauge-demo.stoatworks-labs.com](https://gauge-demo.stoatworks-labs.com/)
+  runs the plugin's own code in a web page, both plugins, but it isn't the plugin: there's no
+  audio, so the track doesn't wiggle, and its tempo is a BPM field on the page rather than
+  Resolume's.
 
 ---
 
@@ -546,6 +550,7 @@ page in your browser.
 
 - Project page: [stoatworks-labs.com/software/gauge](https://stoatworks-labs.com/software/gauge/)
 - Source: [github.com/stoatworks-labs/gauge](https://github.com/stoatworks-labs/gauge)
+- Browser demo: [gauge-demo.stoatworks-labs.com](https://gauge-demo.stoatworks-labs.com/)
 
 ## Reporting something
 

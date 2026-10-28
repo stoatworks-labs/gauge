@@ -214,8 +214,30 @@ panel there.
 
 The look has been seen on a test card and Resolume's bundled demo clips through `gutest
 --pipe`, never on camera footage or a real film scan. There's a
-[user guide](docs/USER-GUIDE.md), but no OpenFX port, no browser demo and no factory
-presets; none is needed for 0.1.0.
+[user guide](docs/USER-GUIDE.md) and a [browser demo](#browser-demo), but no OpenFX port
+and no factory presets; none is needed for 0.1.0.
+
+## Browser demo
+
+**<https://gauge-demo.stoatworks-labs.com/>** runs the plugin itself, not a port of it:
+`source/Gauge.cpp` and everything it calls (the strip, the camera, the held frames, the
+leader's stroked face and the atlas it builds from it), with the FFGL SDK classes it uses,
+compiled unmodified to WebAssembly by `demo/tools/build-wasm.sh` (emscripten) and drawing
+with its own GLSL in WebGL2. Both plugins are on the one page, and its panel is read back
+from their own declarations. The page is the host, and a thin one: its tempo is a BPM clock
+it keeps itself (a Host BPM field, 120 to start with), handed over as Resolume hands over
+its transport; there's no audio, so the optical track doesn't wiggle and Track Level has
+nothing to do; the clock is the browser's; the clip is generated in the page (or your own
+file, which stays in the page); and one GL entry point, `glShaderSource`, is the page's, to
+check the shader text is this repository's and port its version line.
+
+`demo/tools/crosscheck/` renders the same input frames through the page in headless
+Chrome and through `gutest --pipe`, on the same clock, at eleven settings across both
+plugins: 521 frames, every pixel within one 8-bit level on this Mac's GPU (ANGLE over
+Metal), and within four on SwiftShader. A broken model switched on in the page's copy alone
+is caught in every one. `tools/verify.sh` runs both, and fails if `demo/shaders.js` or any
+input of the `.wasm` has drifted from `source/`. It's a demo, not the plugin: the
+disclosure at the foot of the page lists what it leaves out.
 
 ## Build
 
@@ -236,7 +258,7 @@ GLEW through vcpkg.
 ## Building and testing
 
 ```sh
-tools/verify.sh                                   # everything, about 40 seconds
+tools/verify.sh                                   # everything, a few minutes with the demo's crosscheck
 ./build/gutest --list                             # the effect's parameters
 ./build/gutest --plugin source --list             # the source's
 ./build/gutest --perfs --size 320x180             # one check

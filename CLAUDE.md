@@ -37,8 +37,9 @@ the leader.
 - Diagnostics from inside a check: `GU_DEBUG=1 ./build/gutest --perfs`
 
 ## Verify
-- Everything: `tools/verify.sh` (fresh universal build + glslc + reserved words + every
-  check at 320x180 AND 1280x720 + --pipe + the sweep + the bench + both bundles, ~40 s)
+- Everything: `tools/verify.sh` (fresh universal build + glslc + reserved words + the
+  browser demo's checks + every check at 320x180 AND 1280x720 + --pipe + the sweep + the
+  bench + both bundles; a few minutes, most of it the build and the crosscheck)
 - Holes where the standards put them, every format: `./build/gutest --perfs`
 - Pictures and frame lines: `./build/gutest --aperture`
 - The squeeze, from a disc's moments: `./build/gutest --squeeze`
@@ -55,6 +56,20 @@ the leader.
   `--no-context` sweeps on the defaults alone, which is the list of what needs context
 - Render cost: `./build/gutest --bench` (best of three; the GPU here is shared)
 - What a host sees: `~/Projects/resolume/oxbow/build/oxbow probe "build-universal/Gauge Leader.bundle"`
+
+## Browser demo (`demo/`, gauge-demo.stoatworks-labs.com)
+- The plugin's own C++ compiled to WebAssembly, not a port. After ANY change under
+  `source/`: `demo/tools/build-wasm.sh` (needs `em++`), then
+  `python3 demo/tools/check_shaders.py --write` if Shaders.cpp changed; commit
+  `demo/gauge-core.{js,wasm}`, `demo/shaders.js` and `demo/wasm/inputs.sha256`.
+- The demo's copies: `python3 demo/tools/check_shaders.py` (verify.sh runs it).
+- The page against gutest: `node demo/tools/crosscheck/crosscheck.mjs --gutest build/gutest`
+  (`--negative` must report every broken model caught; `--out DIR` writes page | gutest |
+  diff PNGs; `--gl swiftshader` for a second rasteriser).
+- Never edit `demo/vendor/` (the backend's kit) or `demo/shaders.js` / the `.wasm` by hand.
+- Deployed by `.github/workflows/deploy.yml` on a push to main (a Worker ROUTE plus the
+  proxied AAAA `gauge-demo` record; see `wrangler.toml`). Verify by content:
+  `curl -s 'https://gauge-demo.stoatworks-labs.com/?cb=1' | grep -o '<title>[^<]*'`.
 
 ## Notes
 - **The strip is numbers in film millimetres.** `Strip.cpp` holds every format; x runs
@@ -98,7 +113,8 @@ the leader.
   leader 20 live (17 in a second run), the rest inconclusive; plugin-bench
   `arena/expect/gauge.json`.
 - Seen on a test card and Resolume's demo clips through `--pipe`, never on camera footage.
-- No browser demo, no OpenFX port, no presets.
+- No OpenFX port, no presets. The browser demo has no audio and a simulated tempo
+  (AGENTS.md, "The browser demo").
 - `.github/workflows/` are adapted and hadn't run before v0.1.0. They are for a PUBLIC repo
   only, which this now is (`github.com/stoatworks-labs/gauge`).
 
